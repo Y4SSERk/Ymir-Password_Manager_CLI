@@ -1,7 +1,7 @@
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Set
 
 
 @dataclass
@@ -12,6 +12,7 @@ class PasswordEntry:
     password: str
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     note: Optional[str] = None
+    tags: Set[str] = field(default_factory=set)
     created_at: datetime = field(default_factory=datetime.now)
     updated_at: datetime = field(default_factory=datetime.now)
 
@@ -32,6 +33,7 @@ class PasswordEntry:
             "username": self.username,
             "password": self.password,
             "note": self.note,
+            "tags": list(self.tags),
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
         }
@@ -45,12 +47,22 @@ class PasswordEntry:
         if updated_at < created_at:
             updated_at = created_at
 
+        # Handle tags (could be list, set, or missing)
+        tags_data = data.get("tags", [])
+        if isinstance(tags_data, set):
+            tags = tags_data
+        elif isinstance(tags_data, list):
+            tags = set(tags_data)
+        else:
+            tags = set()
+
         return cls(
             id=data.get("id", str(uuid.uuid4())),
             service=data["service"],
             username=data["username"],
             password=data["password"],
             note=data.get("note"),
+            tags=tags,
             created_at=created_at,
             updated_at=updated_at,
         )
