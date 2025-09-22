@@ -30,9 +30,10 @@ ymir = "ymir.main:main"
 
 [tool.uv]
 dev-dependencies = [
-  "pytest",
-  "black",
-  "ruff"
+  "black>=25.9.0",
+  "pre-commit>=4.3.0",
+  "pytest>=8.4.2",
+  "ruff>=0.13.1",
 ]
 
 
