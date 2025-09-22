@@ -19,8 +19,10 @@ classifiers = [
 
 dependencies = [
     "cryptography>=46.0.1",
+    "pydantic>=2.11.9",
     "pyperclip>=1.10.0",
     "rich>=14.1.0",
+    "typer>=0.19.1",
 ]
 
 [project.scripts]
