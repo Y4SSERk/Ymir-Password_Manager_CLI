@@ -71,8 +71,8 @@ jobs:
 
     - name: Run safety check
       run: |
-        uv pip install safety
-        uv run safety check --full-report
+        uv pip install pip-audit
+        uv run pip-audit
 
     - name: Run bandit (security linter)
       run: |
