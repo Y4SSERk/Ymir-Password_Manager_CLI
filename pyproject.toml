@@ -88,3 +88,15 @@ no_implicit_optional = true
 warn_redundant_casts = true
 warn_unused_ignores = true
 warn_no_return = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v --cov=ymir --cov-report=term-missing"
+
+[tool.coverage.run]
+source = ["ymir"]
+omit = ["**/__init__.py", "tests/**"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
