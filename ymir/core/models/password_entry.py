@@ -1,3 +1,4 @@
+import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Dict, Optional
@@ -9,6 +10,7 @@ class PasswordEntry:
     service: str
     username: str
     password: str
+    id: str = field(default_factory=lambda: str(uuid.uuid4()))
     note: Optional[str] = None
     created_at: datetime = field(default_factory=datetime.now)
     updated_at: datetime = field(default_factory=datetime.now)
@@ -25,6 +27,7 @@ class PasswordEntry:
 
     def to_dict(self) -> Dict[str, Any]:
         return {
+            "id": self.id,
             "service": self.service,
             "username": self.username,
             "password": self.password,
@@ -43,6 +46,7 @@ class PasswordEntry:
             updated_at = created_at
 
         return cls(
+            id=data.get("id", str(uuid.uuid4())),
             service=data["service"],
             username=data["username"],
             password=data["password"],
@@ -72,10 +76,10 @@ class PasswordEntry:
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, PasswordEntry):
             return False
-        return (
-            self.service.lower() == other.service.lower()
-            and self.username.lower() == other.username.lower()
-        )
+        return self.id == other.id
+
+    def __hash__(self) -> int:
+        return hash(self.id)
 
     def update_timestamp(self) -> None:
         self.updated_at = datetime.now()
