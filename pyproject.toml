@@ -30,10 +30,12 @@ ymir = "ymir.main:main"
 
 [dependency-groups]
 dev = [
+  "bandit>=1.8.6",
   "black>=25.9.0",
   "pre-commit>=4.3.0",
   "pytest>=8.4.2",
   "ruff>=0.13.1",
+  "safety>=3.2.11",
 ]
 
 [tool.black]
