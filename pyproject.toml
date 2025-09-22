@@ -1,0 +1,37 @@
+[project]
+name = "ymir-password-manager-cli"
+version = "0.1.0"
+description = "A secure and modern Python CLI for managing and encrypting your passwords."
+readme = "README.md"
+requires-python = ">=3.13"
+license = { file = "LICENSE" }
+authors = [
+  { name = "Yasser KHATTACH", email = "yasser.khattach@gmail.com" }
+]
+keywords = ["password-manager", "cli", "security", "encryption", "python"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: Other/Proprietary License",
+  "Operating System :: OS Independent",
+  "Topic :: Security :: Cryptography",
+  "Environment :: Console",
+]
+
+dependencies = [
+    "cryptography>=46.0.1",
+    "pyperclip>=1.10.0",
+    "rich>=14.1.0",
+]
+
+[project.scripts]
+ymir = "ymir.main:main"
+
+[tool.uv]
+dev-dependencies = [
+  "pytest",
+  "black",
+  "ruff"
+]
+
+
+
