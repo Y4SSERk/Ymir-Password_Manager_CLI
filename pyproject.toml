@@ -29,7 +29,7 @@ dependencies = [
 ]
 
 [project.scripts]
-ymir = "ymir.main:main"
+ymir = "ymir.cli.main:main"
 
 [dependency-groups]
 dev = [
