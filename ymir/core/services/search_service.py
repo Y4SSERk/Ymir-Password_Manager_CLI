@@ -56,10 +56,7 @@ class SearchService:
     def _matches_tag_search(self, query: SearchQuery, entry: PasswordEntry) -> bool:
         if not query.tags:
             return True
-
-        if query.match_all_tags:
-            return TagService.has_all_tags(entry, query.tags)  # Use TagService
-        return TagService.has_any_tag(entry, query.tags)  # Use TagService
+        return TagService.matches_tags(entry, query.tags, query.match_all_tags)
 
     def _text_matches(
         self, search_text: str, target_text: str, case_sensitive: bool
@@ -104,7 +101,6 @@ class SearchService:
         return sorted_entries[: query.limit] if query.limit else sorted_entries
 
 
-# Convenience functions with proper type annotations
 def search_entries(
     entries: List[PasswordEntry], query: SearchQuery
 ) -> List[PasswordEntry]:
