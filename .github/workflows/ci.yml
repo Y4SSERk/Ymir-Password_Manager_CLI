@@ -72,7 +72,7 @@ jobs:
     - name: Run safety check
       run: |
         uv pip install pip-audit
-        uv run pip-audit --ignore-vulnerability GHSA-4xh5-x5gv-qwph
+        uv run pip-audit --ignore-vuln GHSA-4xh5-x5gv-qwph
 
     - name: Run bandit (security linter)
       run: |
