@@ -13,37 +13,39 @@ from .memory import SecurityError
 
 class EncryptionService:
     def __init__(self, master_password: str, salt: Optional[bytes] = None):
-        self._salt: bytes = salt or secrets.token_bytes(32)
-        self._key: bytes = self._derive_key(master_password)
-        self._fernet: Fernet = Fernet(self._key)
-        self._hmac_key: bytes = self._derive_hmac_key(master_password)
+        # Store the salt first
+        self._salt = salt or secrets.token_bytes(32)
+        # Then derive keys using the salt
+        self._master_password = master_password
+        self._derive_keys()
 
-    def _derive_key(self, master_password: str) -> bytes:
+    def _derive_keys(self) -> None:
+        """Derive encryption keys using the current salt"""
+        # Derive main encryption key
         kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
             length=32,
             salt=self._salt,
-            iterations=600000,  # OWASP recommended
+            iterations=600000,
         )
-        key: bytes = kdf.derive(master_password.encode())
-        return base64.urlsafe_b64encode(key)
+        key = kdf.derive(self._master_password.encode())
+        self._key = base64.urlsafe_b64encode(key)
+        self._fernet = Fernet(self._key)
 
-    def _derive_hmac_key(self, master_password: str) -> bytes:
-        kdf = PBKDF2HMAC(
+        # Derive HMAC key
+        hmac_kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
             length=32,
             salt=self._salt + b"hmac",
             iterations=100000,
         )
-        key: bytes = kdf.derive(master_password.encode())
-        return key
+        self._hmac_key = hmac_kdf.derive(self._master_password.encode())
 
     def encrypt(self, data: str) -> str:
         encrypted: bytes = self._fernet.encrypt(data.encode())
         hmac_code: bytes = hmac.new(self._hmac_key, encrypted, hashlib.sha256).digest()
         combined: bytes = hmac_code + encrypted
-        result: str = base64.urlsafe_b64encode(combined).decode()
-        return result
+        return base64.urlsafe_b64encode(combined).decode()
 
     def decrypt(self, encrypted_data: str) -> str:
         try:
@@ -52,8 +54,8 @@ class EncryptionService:
             if len(combined) < (32 + 1):
                 raise SecurityError("Invalid encrypted data")
 
-            received_hmac: bytes = combined[:32]
-            encrypted: bytes = combined[32:]
+            received_hmac = combined[:32]
+            encrypted = combined[32:]
 
             expected_hmac: bytes = hmac.new(
                 self._hmac_key, encrypted, hashlib.sha256
@@ -70,3 +72,8 @@ class EncryptionService:
 
     def get_salt(self) -> bytes:
         return self._salt
+
+    def set_salt(self, salt: bytes) -> None:
+        """Set the salt and re-derive keys (used when loading existing vault)"""
+        self._salt = salt
+        self._derive_keys()  # Re-derive keys with the new salt

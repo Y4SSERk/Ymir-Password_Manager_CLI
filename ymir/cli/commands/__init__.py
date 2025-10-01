@@ -1,58 +1,75 @@
 from typing import Any, Dict, List, Type
 
-from rich.console import Console
-
-console = Console()
+from .add import AddCommand
+from .base import BaseCommand
+from .edit import EditCommand  # Add this import
+from .generate import GenerateCommand
+from .list import ListCommand
+from .search import SearchCommand
 
 
 class CommandDispatcher:
-    def __init__(self) -> None:
-        self.commands: Dict[str, Type[Any]] = {}
-        self._load_commands()
-
-    def _load_commands(self) -> None:
-        """Dynamically load available commands"""
-        self.commands = {}
+    def __init__(self, auth_manager: Any) -> None:
+        self.auth_manager = auth_manager
+        self.commands: Dict[str, Type[BaseCommand]] = {
+            "add": AddCommand,
+            "search": SearchCommand,
+            "list": ListCommand,
+            "generate": GenerateCommand,
+            "edit": EditCommand,  # Add edit command
+        }
 
     def execute(self, args: List[str]) -> None:
+        from rich.console import Console
+
+        console = Console()
+
         if not args or args[0] in ("-h", "--help"):
             self.show_help()
             return
 
         command_name = args[0]
-        console.print(f"[yellow]🛠️  Command '{command_name}' coming soon![/yellow]")
-        console.print(
-            "[cyan]📋 Available now: interactive menu (run 'ymir' without arguments)[/cyan]"
-        )
+        if command_name in self.commands:
+            try:
+                command = self.commands[command_name](self.auth_manager)
+                command.execute(args[1:])
+            except Exception as e:
+                console.print(f"[red]❌ Error: {e}[/red]")
+        else:
+            console.print(f"[red]❌ Unknown command: {command_name}[/red]")
+            self.show_help()
 
     def show_help(self) -> None:
-        """Show beautiful command help"""
+        from rich.console import Console
         from rich.panel import Panel
         from rich.table import Table
 
+        console = Console()
+
         console.print(
             Panel.fit(
-                "[bold cyan]🔐 Ymir Password Manager - Command Reference[/bold cyan]"
+                "[bold cyan]🔐 Ymir Password Manager - Command Reference[/bold cyan]",
+                border_style="cyan",
             )
         )
 
-        table = Table(show_header=True, header_style="bold green")
+        table = Table(show_header=True, header_style="bold magenta")
         table.add_column("Command", style="cyan", width=12)
         table.add_column("Description", style="white")
-        table.add_column("Status", style="yellow")
+        table.add_column("Usage", style="dim")
 
-        commands_info = [
-            ("add", "Add new password entry", "Coming soon"),
-            ("search", "Search passwords", "Coming soon"),
-            ("list", "List all entries", "Coming soon"),
-            ("generate", "Generate password", "Coming soon"),
-            ("export", "Export vault", "Coming soon"),
-        ]
-
-        for cmd, desc, status in commands_info:
-            table.add_row(cmd, desc, status)
+        for cmd_name, cmd_class in self.commands.items():
+            cmd = cmd_class(self.auth_manager)
+            usage_examples = {
+                "add": "ymir add <service> <username> <password> [tags...]",
+                "search": "ymir search <query>",
+                "list": "ymir list",
+                "generate": "ymir generate [length]",
+                "edit": "ymir edit",  # Add edit usage
+            }
+            table.add_row(cmd.name, cmd.description, usage_examples.get(cmd_name, ""))
 
         console.print(table)
         console.print(
-            "\n[green]✅ Available now: Run 'ymir' for interactive menu[/green]"
+            "\n[green]💡 Run 'ymir' without arguments for interactive menu[/green]"
         )
